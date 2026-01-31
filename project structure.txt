@@ -1,0 +1,70 @@
+project structure 
+
+root folder: rag
+
+	sub-folder1(injection): 
+		__init__.py
+		
+		loader.py->
+		from langchain_community.document_loaders import PDFPlumberLoader
+		def doc_loader():
+    			loader = PDFPlumberLoader("data/medical_pharmacology.pdf")
+			    docs = loader.load()
+    			    return docs
+			    print("Document loaded successfully!!")
+		
+		splitter.py->
+		from langchain_classic.text_splitter import RecursiveCharacterTextSplitter
+		from .loader import doc_loader
+		def docs_splitter():
+    			docs = doc_loader()
+    			splitter = RecursiveCharacterTextSplitter(chunk_size = 400, 									chunk_overlap = 50)
+    			chunk = splitter.split_documents(docs)
+    			return chunk
+		print("Document has been converted into chunks successfully!!")
+
+ 		embedding.py->
+		from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+
+		def embedding_model():
+    			model = HuggingFaceBgeEmbeddings(
+        			model_name="Qwen/Qwen3-Embedding-0.6B",
+        			model_kwargs={'device': 'cpu'},
+        			encode_kwargs={'normalize_embeddings': True}
+    				)
+    			return model
+		print("Embedding model initialized successfully")
+
+	sub-folder2(vector_store)
+		vectordb.py->
+		from langchain_community.vectorstores import FAISS
+		from injection.embedding import embedding_model
+		from injection.splitter import docs_splitter
+
+		def vectorstoredb():
+    			print("Process started: Loading and splitting documents...")
+    			chunk = docs_splitter()
+    			print(f"Documents split into {len(chunk)} chunks.")
+    
+   			print("Initializing embedding model (this may take a moment)...")
+    			model = embedding_model()
+    			print("Creating FAISS vector store...")
+    			storedb = FAISS.from_documents(chunk, model)
+    			return storedb
+		print("Embedding stored successfully!!")
+	
+	sub-floder3(rag_app)	
+		retrival.py->
+		from vector_storage.vectordb import vectorstoredb
+
+		user_input = input("Enter your question: ")
+		retrival = vectorstoredb()
+		result = retrival.max_marginal_relevance_search(
+    			query = user_input,
+    			k=2,
+    			fetch_k=6,
+    			lambda_mult=0.6
+			)
+
+		for doc in result:
+    			print(doc.page_content)
