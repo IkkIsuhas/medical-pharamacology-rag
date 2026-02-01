@@ -1,13 +1,13 @@
-from vector_storage.vectordb import vectorstoredb
+from vector_storage.load_vector import load_vectorstore
 
-user_input = input("Enter your question: ")
-retrival = vectorstoredb()
-result = retrival.max_marginal_relevance_search(
-    query = user_input,
-    k=2,
-    fetch_k=6,
-    lambda_mult=0.6
-)
+def retriever_chunk(question :str):
+    retrival = load_vectorstore()
+    result = retrival.similarity_search(
+        query = question,
+        k=2
+    )
+    chunks = []
+    for doc in result:
+        chunks.append(doc.page_content)
 
-for doc in result:
-    print(doc.page_content)
+    return chunks

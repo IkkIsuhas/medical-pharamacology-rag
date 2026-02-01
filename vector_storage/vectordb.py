@@ -12,5 +12,6 @@ def vectorstoredb():
     
     print("Creating FAISS vector store...")
     storedb = FAISS.from_documents(chunk, model)
+    storedb.save_local("faiss_index")
     return storedb
-print("Embedding stored successfully!!")
+print("Embedding stored successfully")
